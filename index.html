@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PixelPost Workflow Flowchart</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for arrows and layout */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light background */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box; /* Ensure padding is included in element's total width/height */
+        }
+
+        .flowchart-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 95%; /* Use a percentage for fluid width */
+            max-width: 1024px; /* Increased max-width for landscape feel on larger screens */
+            padding: 2rem; /* Responsive padding */
+            background-color: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+        }
+
+        .flow-step {
+            background-color: #fff;
+            border: 2px solid #fcd34d; /* PixelPost yellow border */
+            border-radius: 0.75rem; /* Rounded corners */
+            padding: 1rem 1.5rem;
+            margin: 0.75rem 0;
+            text-align: center;
+            font-weight: 600;
+            color: #333;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease-in-out;
+            width: 100%; /* Full width within container */
+            max-width: 280px; /* Adjusted max-width for individual steps on smaller screens */
+        }
+
+        .flow-step:hover {
+            transform: translateY(-3px);
+        }
+
+        .flow-arrow {
+            width: 2px;
+            height: 30px; /* Height of the arrow line */
+            background-color: #fcd34d; /* PixelPost yellow */
+            position: relative;
+            margin: 0.5rem 0;
+        }
+
+        .flow-arrow::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid #fcd34d; /* Arrowhead color */
+        }
+
+        .flow-decision {
+            background-color: #fefcbf; /* Lighter yellow for decision */
+            border: 2px solid #fcd34d;
+            border-radius: 0.75rem;
+            padding: 1rem 1.5rem;
+            margin: 0.75rem 0;
+            text-align: center;
+            font-weight: 600;
+            color: #333;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease-in-out;
+            width: 100%;
+            max-width: 280px; /* Adjusted max-width for individual steps on smaller screens */
+        }
+
+        .flow-decision-branches {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 380px; /* Adjusted for branches to fit better */
+            margin-top: 0.5rem;
+        }
+
+        .flow-branch-line {
+            width: 2px;
+            height: 30px;
+            background-color: #fcd34d;
+            position: relative;
+        }
+
+        .flow-branch-line::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid #fcd34d;
+        }
+
+        .flow-branch-label {
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 500;
+            color: #555;
+            margin-top: 0.25rem;
+        }
+
+        .flow-side-path {
+            background-color: #fee2e2; /* Light red for rejection path */
+            border: 2px solid #ef4444; /* Red border */
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            margin-top: 0.5rem;
+            text-align: center;
+            font-weight: 600;
+            color: #dc2626;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 180px; /* Adjusted for smaller screens */
+            align-self: flex-end; /* Align to the right for rejection */
+            margin-right: 20px; /* Offset from main flow */
+        }
+
+        /* Responsive adjustments for larger screens */
+        @media (min-width: 640px) {
+            .flowchart-container {
+                padding: 3rem;
+            }
+            .flow-step, .flow-decision {
+                padding: 1.25rem 2rem;
+                max-width: 300px; /* Slightly wider on larger screens */
+            }
+            .flow-arrow {
+                height: 40px;
+            }
+            .flow-decision-branches {
+                max-width: 450px;
+            }
+            .flow-side-path {
+                max-width: 200px;
+                margin-right: 40px; /* More offset on larger screens */
+            }
+        }
+
+        /* Print-specific styles for A4 Landscape layout */
+        @media print {
+            body {
+                background-color: #ffffff; /* White background for print */
+                margin: 0;
+                padding: 0;
+                display: block;
+                /* Force landscape orientation for print */
+                width: 297mm;
+                height: 210mm;
+                transform-origin: top left;
+                transform: rotate(-90deg) translate(-210mm, 0);
+            }
+
+            .flowchart-container {
+                width: 297mm; /* A4 landscape width */
+                min-height: 210mm; /* A4 landscape height */
+                max-width: 297mm; /* Ensure it doesn't exceed A4 landscape width */
+                padding: 20mm; /* Standard A4 margins */
+                box-shadow: none; /* No shadow in print */
+                border-radius: 0; /* No rounded corners in print */
+                margin: 0 auto; /* Center on page */
+                box-sizing: border-box;
+            }
+
+            .flow-step, .flow-decision, .flow-side-path {
+                box-shadow: none; /* No shadows in print */
+                transform: none; /* No hover effects in print */
+                border: 1px solid #333; /* Darker border for print clarity */
+                color: #000; /* Black text for print clarity */
+            }
+
+            .flow-step.bg-yellow-100, .flow-step.bg-green-100, .flow-decision.bg-fefcbf, .flow-side-path.bg-fee2e2 {
+                background-color: #ffffff; /* White background for print */
+            }
+
+            .flow-step.border-yellow-500, .flow-step.border-green-500, .flow-decision.border-yellow-500 {
+                border-color: #333; /* Darker border for print */
+            }
+
+            .flow-arrow, .flow-arrow::after, .flow-branch-line, .flow-branch-line::after {
+                background-color: #333; /* Darker arrows for print */
+                border-top-color: #333;
+            }
+
+            .flow-branch-label {
+                color: #000; /* Black text for print */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="flowchart-container">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Proposed PixelPost System Workflow</h2>
+
+        <!-- Start Node -->
+        <div class="flow-step bg-yellow-100 border-yellow-500">START: Customer Accesses PixelPost Online Portal</div>
+        <div class="flow-arrow"></div>
+
+        <!-- Step 1 -->
+        <div class="flow-step">1. Customer Selects Date & Time Slot (from real-time avail.)</div>
+        <div class="flow-arrow"></div>
+
+        <!-- Step 2 -->
+        <div class="flow-step">2. System Displays Available Locations/Screens (based on slot)</div>
+        <div class="flow-arrow"></div>
+
+        <!-- Step 3 -->
+        <div class="flow-step">3. Customer Selects Desired Location/Screen</div>
+        <div class="flow-arrow"></div>
+
+        <!-- Step 4 -->
+        <div class="flow-step">4. Customer Uploads Ad Content</div>
+        <div class="flow-arrow"></div>
+
+        <!-- Step 5 (Decision Point) -->
+        <div class="flow-decision">5. Content Review & Confirmation (PixelPost)</div>
+        <div class="flow-decision-branches">
+            <div class="flex flex-col items-center">
+                <div class="flow-branch-line"></div>
+                <span class="flow-branch-label"> (If Approved) </span>
+            </div>
+            <div class="flex flex-col items-center">
+                <div class="flow-branch-line"></div>
+                <span class="flow-branch-label"> (If Rejected) </span>
+            </div>
+        </div>
+
+        <!-- Branch for Rejected Content -->
+        <div class="flex w-full justify-end pr-8 -mt-8"> <!-- Adjust margin-top to align -->
+            <div class="flow-side-path">Notify Customer (Re-upload/Cancel)</div>
+        </div>
+
+        <!-- Main Flow (Approved Path) -->
+        <div class="flow-arrow"></div>
+
+        <!-- Step 6 -->
+        <div class="flow-step">6. Billing Processed</div>
+        <div class="flow-arrow"></div>
+
+        <!-- Step 7 -->
+        <div class="flow-step">7. Ad Content & Schedule Stored in Central Database (Cloud)</div>
+        <div class="flow-arrow"></div>
+
+        <!-- Step 8 -->
+        <div class="flow-step">8. Batch Process Picks Data from Database (e.g., minute-wise)</div>
+        <div class="flow-arrow"></div>
+
+        <!-- Step 9 -->
+        <div class="flow-step">9. Data Sent to IoT Nodes (Screens) via Cloud</div>
+        <div class="flow-arrow"></div>
+
+        <!-- Step 10 -->
+        <div class="flow-step">10. Ad Content Displayed on Screen</div>
+        <div class="flow-arrow"></div>
+
+        <!-- Step 11 -->
+        <div class="flow-step">11. IoT Nodes Continuously Report Status/Data (e.g., screen health, playback, audience info)</div>
+        <div class="flow-arrow"></div>
+
+        <!-- End Node -->
+        <div class="flow-step bg-green-100 border-green-500">END: Continuous Operation & Data Feedback</div>
+    </div>
+</body>
+</html>
