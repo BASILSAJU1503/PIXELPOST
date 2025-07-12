@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PixelPost Content Upload & Preview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f0f4f8; /* Light background */
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+        }
+      .pixelpost-logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900; /* Extra bold */
+            font-size: 2.5rem; /* Large size */
+            color: #FFD700; /* Gold/Yellow accent */
+            text-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2); /* 3D effect shadow */
+            line-height: 1;
+        }
+      .btn-primary {
+            background-color: #FFD700; /* Gold/Yellow */
+            color: #333;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+        }
+      .btn-primary:hover {
+            background-color: #e6c200; /* Slightly darker yellow */
+        }
+      .btn-secondary {
+            background-color: #e5e7eb; /* Light gray */
+            color: #333;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+        }
+      .btn-secondary:hover {
+            background-color: #d1d5db; /* Darker gray */
+        }
+      .card {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            padding: 1.5rem;
+        }
+      .drop-zone {
+            border: 2px dashed #fcd34d; /* Pixelpost yellow dashed border */
+            background-color: #fffbeb; /* Light yellow background */
+            border-radius: 0.75rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+        }
+      .drop-zone.hover {
+            background-color: #fefcbf;
+            border-color: #fcd34d;
+        }
+      .preview-mockup {
+            background-color: #333; /* Dark background for screen */
+            border: 4px solid #000; /* Screen bezel */
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+      .preview-mockup.vertical {
+            width: 150px; /* Example width */
+            height: 266px; /* Example height for 9:16 aspect ratio */
+        }
+      .preview-mockup.vertical.size-43 { width: 120px; height: 213px; } /* Smaller for 43" */
+      .preview-mockup.vertical.size-55 { width: 150px; height: 266px; } /* Medium for 55" */
+      .preview-mockup.vertical.size-65 { width: 180px; height: 320px; } /* Larger for 65" */
+
+      .preview-mockup img,.preview-mockup video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+      .contextual-preview-frame {
+            border: 2px solid #ccc;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background-color: #f8f8f8;
+            height: 200px; /* Fixed height for simulation */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            color: #666;
+            position: relative;
+        }
+      .contextual-preview-frame.ad-slot {
+            background-color: #FFD700; /* Yellow for ad */
+            color: #333;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 60%; /* Represents 20s ad */
+            text-align: center;
+        }
+      .contextual-preview-frame.menu-slot {
+            background-color: #e5e7eb; /* Light gray for menu */
+            color: #333;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 40%; /* Represents 10s menu */
+            text-align: center;
+            border-top: 1px solid #ccc;
+        }
+      .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px; /* full rounded */
+            font-size: 0.75rem; /* text-xs */
+            font-weight: 600;
+        }
+      .status-pending { background-color: #fef3c7; color: #92400e; } /* yellow-100, yellow-800 */
+      .status-approved { background-color: #d1fae5; color: #065f46; } /* green-100, green-800 */
+      .status-rejected { background-color: #fee2e2; color: #dc2626; } /* red-100, red-800 */
+    </style>
+</head>
+<body class="min-h-screen p-4 sm:p-6 lg:p-8">
+
+    <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-6 lg:p-8">
+
+        <header class="flex items-center justify-between pb-6 border-b border-gray-200 mb-6">
+            <div class="flex items-center">
+                <span class="pixelpost-logo mr-2">P</span>
+                <h1 class="text-2xl font-bold text-gray-800">PixelPost</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button class="relative p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                    <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0.538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                    <span class="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500"></span>
+                </button>
+                <div class="flex items-center space-x-2">
+                    <img class="w-8 h-8 rounded-full" src="https://via.placeholder.com/150/FFD700/000000?text=U" alt="User Avatar">
+                    <span class="font-semibold text-gray-700 hidden sm:block">Advertiser Name</span>
+                </div>
+                <button class="btn-primary hidden md:block">Create New Campaign</button>
+            </div>
+        </header>
+
+        <main>
+            <h2 class="text-xl font-bold text-gray-800 mb-6">Content Upload & Preview</h2>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div class="lg:col-span-2 card">
+                    <h3 class="text-lg font-semibold mb-4">Upload Your Creative</h3>
+                    <div id="dropZone" class="drop-zone flex flex-col items-center justify-center">
+                        <svg class="w-12 h-12 text-yellow-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 0115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                        <p class="text-gray-700 font-semibold mb-2">Drag & drop your files here, or <span class="text-yellow-600 underline">browse</span></p>
+                        <p class="text-sm text-gray-500">Supported: MP4, JPG, PNG | Max size: 50MB</p>
+                        <p class="text-sm text-gray-500 mt-1">Recommended for Vertical Screens:</p>
+                        <ul class="list-disc list-inside text-xs text-gray-500 text-left">
+                            <li>**Images:** 1080x1920px (9:16 aspect ratio)</li>
+                            <li>**Videos:** 1080x1920px (9:16 aspect ratio), 20 seconds max</li>
+                        </ul>
+                    </div>
+                    <input type="file" id="fileInput" class="hidden" accept="image/*,video/*">
+
+                    <div class="mt-6">
+                        <h3 class="text-lg font-semibold mb-4">Creative Library</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between p-3 border border-gray-200 rounded-md">
+                                <div class="flex items-center">
+                                    <svg class="w-6 h-6 text-yellow-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    <div>
+                                        <p class="font-medium">Summer_Sale_Banner_V1.jpg</p>
+                                        <p class="text-xs text-gray-500">1080x1920px | 1.2 MB</p>
+                                    </div>
+                                </div>
+                                <span class="status-badge status-approved">Approved</span>
+                                <button class="text-yellow-600 hover:underline text-sm ml-auto">Preview</button>
+                            </div>
+                            <div class="flex items-center justify-between p-3 border border-gray-200 rounded-md">
+                                <div class="flex items-center">
+                                    <svg class="w-6 h-6 text-yellow-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                    <div>
+                                        <p class="font-medium">New_Product_Promo.mp4</p>
+                                        <p class="text-xs text-gray-500">1080x1920px | 18.5 MB</p>
+                                    </div>
+                                </div>
+                                <span class="status-badge status-pending">Pending Review</span>
+                                <button class="text-yellow-600 hover:underline text-sm ml-auto">Preview</button>
+                            </div>
+                            <div class="flex items-center justify-between p-3 border border-gray-200 rounded-md">
+                                <div class="flex items-center">
+                                    <svg class="w-6 h-6 text-yellow-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    <div>
+                                        <p class="font-medium">Event_Ad_Horizontal.jpg</p>
+                                        <p class="text-xs text-gray-500">1920x1080px | 2.1 MB</p>
+                                        <p class="text-xs text-red-600 font-semibold">Warning: Incorrect Aspect Ratio (16:9)</p>
+                                    </div>
+                                </div>
+                                <span class="status-badge status-rejected">Rejected</span>
+                                <button class="text-yellow-600 hover:underline text-sm ml-auto">Preview</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="text-lg font-semibold mb-4">Preview Your Ad</h3>
+                    <div class="flex justify-center items-center space-x-4 mb-6">
+                        <button class="btn-secondary text-sm px-3 py-1">43"</button>
+                        <button class="btn-secondary text-sm px-3 py-1 active">55"</button>
+                        <button class="btn-secondary text-sm px-3 py-1">65"</button>
+                    </div>
+
+                    <div class="flex justify-center mb-6">
+                        <div class="preview-mockup vertical size-55">
+                            <img src="https://via.placeholder.com/1080x1920/FFD700/000000?text=YOUR+AD+HERE" alt="Ad Preview">
+                        </div>
+                    </div>
+
+                    <h4 class="font-semibold mb-2">Contextual Simulation (Ad + Menu Loop)</h4>
+                    <div class="contextual-preview-frame mb-6">
+                        <div class="ad-slot">
+                            <p>Your 20-sec Ad Here</p>
+                        </div>
+                        <div class="menu-slot">
+                            <p>Restaurant Menu (10 sec)</p>
+                        </div>
+                        <p class="absolute bottom-2 text-xs text-gray-700">Ad plays for 20s, followed by 10s menu.</p>
+                    </div>
+
+                    <h4 class="font-semibold mb-2">Environmental Preview</h4>
+                    <select class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-yellow-500 focus:border-yellow-500 mb-4">
+                        <option>Select Environment</option>
+                        <option>Restaurant Dining Area</option>
+                        <option>Restaurant Waiting Area</option>
+                        <option>Hotel Lobby</option>
+                        <option>Cafe Counter</option>
+                    </select>
+
+                    <h4 class="font-semibold mb-2">Mobile Preview</h4>
+                    <div class="flex justify-center mb-6">
+                        <div class="preview-mockup vertical" style="width: 100px; height: 180px; border-radius: 1rem; border-width: 6px;">
+                            <img src="https://via.placeholder.com/1080x1920/FFD700/000000?text=MOBILE+PREVIEW" alt="Mobile Ad Preview">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end space-x-3">
+                        <button class="btn-secondary">Save to Library</button>
+                        <button class="btn-primary">Attach to Campaign</button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // Drag and drop functionality
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('hover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('hover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('hover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                // In a real app, you'd handle file upload and validation here
+                alert(`File "${files.name}" dropped. (Validation and upload logic would go here)`);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const files = e.target.files;
+            if (files.length > 0) {
+                // In a real app, you'd handle file upload and validation here
+                alert(`File "${files.name}" selected. (Validation and upload logic would go here)`);
+            }
+        });
+
+        // Simple preview size switching (for demonstration)
+        document.querySelectorAll('.preview-mockup.vertical').forEach(mockup => {
+            mockup.dataset.currentSize = 'size-55'; // Default
+        });
+
+        document.querySelectorAll('.flex.justify-center.items-center.space-x-4 button').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.flex.justify-center.items-center.space-x-4 button').forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+
+                const size = this.textContent.toLowerCase().replace('"', '');
+                const previewMockup = document.querySelector('.preview-mockup.vertical');
+                
+                previewMockup.classList.remove('size-43', 'size-55', 'size-65');
+                previewMockup.classList.add(`size-${size}`);
+            });
+        });
+    </script>
+
+</body>
+</html>
