@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PixelPost Location & Inventory</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f0f4f8; /* Light background */
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+        }
+       .pixelpost-logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900; /* Extra bold */
+            font-size: 2.5rem; /* Large size */
+            color: #FFD700; /* Gold/Yellow accent */
+            text-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2); /* 3D effect shadow */
+            line-height: 1;
+        }
+       .btn-primary {
+            background-color: #FFD700; /* Gold/Yellow */
+            color: #333;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+        }
+       .btn-primary:hover {
+            background-color: #e6c200; /* Slightly darker yellow */
+        }
+       .btn-secondary {
+            background-color: #e5e7eb; /* Light gray */
+            color: #333;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+        }
+       .btn-secondary:hover {
+            background-color: #d1d5db; /* Darker gray */
+        }
+       .card {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            padding: 1.5rem;
+        }
+       .map-placeholder {
+            background-color: #e0f2fe; /* Light blue for map */
+            border: 1px solid #90cdf4;
+            border-radius: 0.75rem;
+            height: 400px; /* Fixed height for map */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #60a5fa; /* Blue text */
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+       .map-marker {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background-color: #FFD700;
+            border-radius: 50%;
+            border: 2px solid #333;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+       .map-marker:nth-child(1) { top: 20%; left: 30%; }
+       .map-marker:nth-child(2) { top: 40%; left: 50%; }
+       .map-marker:nth-child(3) { top: 60%; left: 20%; }
+       .map-marker:nth-child(4) { top: 35%; left: 70%; }
+       .map-marker:nth-child(5) { top: 75%; left: 45%; }
+
+        /* Modal specific styles */
+       .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+       .modal-content {
+            background-color: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 800px;
+            padding: 2rem;
+            position: relative;
+            max-height: 90vh; /* Limit height for scrollability */
+            overflow-y: auto; /* Enable scrolling for content */
+        }
+       .location-image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 0.5rem;
+        }
+       .location-image-grid img {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+        }
+       .availability-calendar-placeholder {
+            background-color: #f8f8f8;
+            border: 1px dashed #ccc;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 0.9rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 sm:p-6 lg:p-8">
+
+    <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-6 lg:p-8">
+
+        <header class="flex items-center justify-between pb-6 border-b border-gray-200 mb-6">
+            <div class="flex items-center">
+                <span class="pixelpost-logo mr-2">P</span>
+                <h1 class="text-2xl font-bold text-gray-800">PixelPost</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button class="relative p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                    <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0.538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                    <span class="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500"></span>
+                </button>
+                <div class="flex items-center space-x-2">
+                    <img class="w-8 h-8 rounded-full" src="https://via.placeholder.com/150/FFD700/000000?text=U" alt="User Avatar">
+                    <span class="font-semibold text-gray-700 hidden sm:block">Advertiser Name</span>
+                </div>
+                <button class="btn-primary hidden md:block">Create New Campaign</button>
+            </div>
+        </header>
+
+        <main>
+            <h2 class="text-xl font-bold text-gray-800 mb-6">Location & Inventory Management</h2>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 card p-0 overflow-hidden">
+                    <div class="p-4 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold mb-3">Explore Our Network (13+ Locations)</h3>
+                        <div class="flex flex-col sm:flex-row gap-3 mb-4">
+                            <input type="text" placeholder="Search location (e.g., Kozhikoden Kitchen)" class="flex-grow border border-gray-300 rounded-md shadow-sm p-2 focus:ring-yellow-500 focus:border-yellow-500">
+                            <select class="border border-gray-300 rounded-md shadow-sm p-2 focus:ring-yellow-500 focus:border-yellow-500">
+                                <option>Filter by Type</option>
+                                <option>Restaurants (12hr)</option>
+                                <option>Restaurants (24/7)</option>
+                                <option>Hotels</option>
+                                <option>Cafes</option>
+                            </select>
+                        </div>
+                        <button class="btn-secondary text-sm px-3 py-1">Find locations near me/my target address</button>
+                    </div>
+                    <div class="map-placeholder">
+                        <p>Interactive Map Placeholder</p>
+                        <div class="map-marker" style="top: 20%; left: 30%;" onclick="showLocationDetails('Kozhikoden Kitchen')">1</div>
+                        <div class="map-marker" style="top: 40%; left: 50%;" onclick="showLocationDetails('Liberty Hotel')">2</div>
+                        <div class="map-marker" style="top: 60%; left: 20%;" onclick="showLocationDetails('Zamzam Hotel')">3</div>
+                        <div class="map-marker" style="top: 35%; left: 70%;" onclick="showLocationDetails('KBC')">4</div>
+                        <div class="map-marker" style="top: 75%; left: 45%;" onclick="showLocationDetails('Saravana Bhavan')">5</div>
+                    </div>
+                    <div class="p-4 border-t border-gray-200">
+                        <h4 class="font-semibold mb-2">Recommendations for Local Impact:</h4>
+                        <p class="text-sm text-gray-600">"Boost Local Sales" by targeting locations near your business or specific customer segments.</p>
+                        <ul class="list-disc list-inside text-sm text-gray-700 mt-2">
+                            <li>**Best for Fashion Brands:** Locations near shopping districts (e.g., KBC, Gujarati St)</li>
+                            <li>**Ideal for Tech Startups:** Locations near tech parks (e.g., UL CyberPark area)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-1 card">
+                    <h3 class="text-lg font-semibold mb-4">Location List View</h3>
+                    <div class="space-y-3 max-h-96 overflow-y-auto pr-2">
+                        <div class="p-3 border border-gray-200 rounded-md flex justify-between items-center">
+                            <div>
+                                <p class="font-semibold">Kozhikoden Kitchen</p>
+                                <p class="text-xs text-gray-500">Govindapuram</p>
+                                <p class="text-xs text-gray-500">Foot Traffic: 680+/day</p>
+                            </div>
+                            <button class="text-yellow-600 hover:underline text-sm" onclick="showLocationDetails('Kozhikoden Kitchen')">View Details</button>
+                        </div>
+                        <div class="p-3 border border-gray-200 rounded-md flex justify-between items-center">
+                            <div>
+                                <p class="font-semibold">Liberty Hotel</p>
+                                <p class="text-xs text-gray-500">Mavoor Rd</p>
+                                <p class="text-xs text-gray-500">Foot Traffic: 720+/day</p>
+                            </div>
+                            <button class="text-yellow-600 hover:underline text-sm" onclick="showLocationDetails('Liberty Hotel')">View Details</button>
+                        </div>
+                        <div class="p-3 border border-gray-200 rounded-md flex justify-between items-center">
+                            <div>
+                                <p class="font-semibold">Zamzam Hotel</p>
+                                <p class="text-xs text-gray-500">Red Cross Rd</p>
+                                <p class="text-xs text-gray-500">Foot Traffic: 650+/day</p>
+                            </div>
+                            <button class="text-yellow-600 hover:underline text-sm" onclick="showLocationDetails('Zamzam Hotel')">View Details</button>
+                        </div>
+                        <div class="p-3 border border-gray-200 rounded-md flex justify-between items-center">
+                            <div>
+                                <p class="font-semibold">KBC (Gujarati St)</p>
+                                <p class="text-xs text-gray-500">Gujarati St</p>
+                                <p class="text-xs text-gray-500">Foot Traffic: 800+/day</p>
+                            </div>
+                            <button class="text-yellow-600 hover:underline text-sm" onclick="showLocationDetails('KBC')">View Details</button>
+                        </div>
+                        <div class="p-3 border border-gray-200 rounded-md flex justify-between items-center">
+                            <div>
+                                <p class="font-semibold">Saravana Bhavan</p>
+                                <p class="text-xs text-gray-500">Near Puthiya Stand</p>
+                                <p class="text-xs text-gray-500">Foot Traffic: 700+/day</p>
+                            </div>
+                            <button class="text-yellow-600 hover:underline text-sm" onclick="showLocationDetails('Saravana Bhavan')">View Details</button>
+                        </div>
+                        <div class="p-3 border border-gray-200 rounded-md flex justify-between items-center">
+                            <div>
+                                <p class="font-semibold">Topcity</p>
+                                <p class="text-xs text-gray-500">Near Railway Station</p>
+                                <p class="text-xs text-gray-500">Foot Traffic: 750+/day</p>
+                            </div>
+                            <button class="text-yellow-600 hover:underline text-sm" onclick="showLocationDetails('Topcity')">View Details</button>
+                        </div>
+                        <div class="p-3 border border-gray-200 rounded-md flex justify-between items-center">
+                            <div>
+                                <p class="font-semibold">Mandi House</p>
+                                <p class="text-xs text-gray-500">Near 2nd Gate</p>
+                                <p class="text-xs text-gray-500">Foot Traffic: 600+/day</p>
+                            </div>
+                            <button class="text-yellow-600 hover:underline text-sm" onclick="showLocationDetails('Mandi House')">View Details</button>
+                        </div>
+                        <div class="p-3 border border-gray-200 rounded-md flex justify-between items-center">
+                            <div>
+                                <p class="font-semibold">Ambika</p>
+                                <p class="text-xs text-gray-500">Nadakkavu</p>
+                                <p class="text-xs text-gray-500">Foot Traffic: 550+/day</p>
+                            </div>
+                            <button class="text-yellow-600 hover:underline text-sm" onclick="showLocationDetails('Ambika')">View Details</button>
+                        </div>
+                        <div class="p-3 border border-gray-200 rounded-md flex justify-between items-center">
+                            <div>
+                                <p class="font-semibold">Eatout</p>
+                                <p class="text-xs text-gray-500">Near Court Road</p>
+                                <p class="text-xs text-gray-500">Foot Traffic: 620+/day</p>
+                            </div>
+                            <button class="text-yellow-600 hover:underline text-sm" onclick="showLocationDetails('Eatout')">View Details</button>
+                        </div>
+                        <div class="p-3 border border-gray-200 rounded-md flex justify-between items-center">
+                            <div>
+                                <p class="font-semibold">Chick & Co</p>
+                                <p class="text-xs text-gray-500">Mangavu</p>
+                                <p class="text-xs text-gray-500">Foot Traffic: 580+/day</p>
+                            </div>
+                            <button class="text-yellow-600 hover:underline text-sm" onclick="showLocationDetails('Chick & Co')">View Details</button>
+                        </div>
+                    </div>
+                    <button class="btn-primary w-full mt-6">Add Selected Locations to Campaign</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="locationDetailsModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="absolute top-4 right-4 text-gray-500 hover:text-gray-800" onclick="document.getElementById('locationDetailsModal').classList.add('hidden')">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 id="modalLocationName" class="text-xl font-bold text-gray-800 mb-4"></h3>
+            <p id="modalLocationAddress" class="text-sm text-gray-600 mb-4"></p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <div>
+                    <p class="text-sm text-gray-600">Estimated Daily Foot Traffic: <span id="modalFootTraffic" class="font-semibold"></span></p>
+                    <p class="text-sm text-gray-600">Available Screen Sizes: <span id="modalScreenSizes" class="font-semibold"></span></p>
+                    <p class="text-sm text-gray-600">Operating Hours: <span id="modalOperatingHours" class="font-semibold"></span></p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Audience Profile: <span id="modalAudienceProfile" class="font-semibold"></span></p>
+                    <p class="text-sm text-gray-600">Guaranteed Attention: <span class="font-semibold text-yellow-600">Yes (Menu Integration)</span></p>
+                    <p class="text-sm text-gray-600">Local Sales Boost Potential: <span class="font-semibold text-yellow-600">High</span></p>
+                </div>
+            </div>
+
+            <h4 class="font-semibold mb-2">Screen Placement Photos:</h4>
+            <p class="text-sm text-gray-600 mb-3">See how your ad will be strategically placed for maximum visibility.</p>
+            <div class="location-image-grid mb-6">
+                <img src="https://via.placeholder.com/150/FFD700/000000?text=Screen+View+1" alt="Screen Placement 1">
+                <img src="https://via.placeholder.com/150/FFD700/000000?text=Screen+View+2" alt="Screen Placement 2">
+                <img src="https://via.placeholder.com/150/FFD700/000000?text=Screen+View+3" alt="Screen Placement 3">
+                <img src="https://via.placeholder.com/150/FFD700/000000?text=Screen+View+4" alt="Screen Placement 4">
+            </div>
+
+            <h4 class="font-semibold mb-2">Availability Calendar:</h4>
+            <div class="availability-calendar-placeholder">
+                <p>Interactive Calendar/Slot Selector Here</p>
+            </div>
+
+            <div class="flex justify-end space-x-3 mt-6">
+                <button class="btn-secondary" onclick="document.getElementById('locationDetailsModal').classList.add('hidden')">Close</button>
+                <button class="btn-primary">Select for Campaign</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const locationsData = {
+            "Kozhikoden Kitchen": {
+                address: "Near MIMS Dwaraka house, Kommeri Rd, Govindapuram, Kozhikode, Kerala 673007",
+                footTraffic: "680+",
+                screenSizes: "43\", 55\", 65\"",
+                operatingHours: "12 hours/day",
+                audienceProfile: "High-Spending Customers, Families",
+                is247: false
+            },
+            "Liberty Hotel": {
+                address: "Mavoor Rd, Opposite KSRTC, Tazhekkod, Kozhikode, Kerala 673001",
+                footTraffic: "720+",
+                screenSizes: "43\", 55\", 65\"",
+                operatingHours: "24/7 Exposure",
+                audienceProfile: "Business Travelers, General Public",
+                is247: true
+            },
+            "Zamzam Hotel": {
+                address: "Red Cross Rd, opp. Tagore Hall, Moonalungal, Vellayil, Kozhikode, Kerala 673032",
+                footTraffic: "650+",
+                screenSizes: "43\", 55\", 65\"",
+                operatingHours: "12 hours/day",
+                audienceProfile: "Local Diners, Families",
+                is247: false
+            },
+            "KBC": {
+                address: "Gujarati St, Kuttichira, Kozhikode, Kerala 673032",
+                footTraffic: "800+",
+                screenSizes: "43\", 55\", 65\"",
+                operatingHours: "12 hours/day",
+                audienceProfile: "Shoppers, Young Adults",
+                is247: false
+            },
+            "Saravana Bhavan": {
+                address: "Near Puthiya Stand, Kozhikode",
+                footTraffic: "700+",
+                screenSizes: "43\", 55\", 65\"",
+                operatingHours: "12 hours/day",
+                audienceProfile: "Travelers, Families",
+                is247: false
+            },
+            "Topcity": {
+                address: "Near Railway Station, Kozhikode",
+                footTraffic: "750+",
+                screenSizes: "43\", 55\", 65\"",
+                operatingHours: "12 hours/day",
+                audienceProfile: "Commuters, Travelers",
+                is247: false
+            },
+            "Mandi House": {
+                address: "Near 2nd Gate, Kozhikode",
+                footTraffic: "600+",
+                screenSizes: "43\", 55\", 65\"",
+                operatingHours: "12 hours/day",
+                audienceProfile: "Local Diners, Students",
+                is247: false
+            },
+            "Ambika": {
+                address: "Nadakkavu, Kozhikode",
+                footTraffic: "550+",
+                screenSizes: "43\", 55\", 65\"",
+                operatingHours: "12 hours/day",
+                audienceProfile: "Local Residents, Shoppers",
+                is247: false
+            },
+            "Eatout": {
+                address: "Near Court Road, Kozhikode",
+                footTraffic: "620+",
+                screenSizes: "43\", 55\", 65\"",
+                operatingHours: "12 hours/day",
+                audienceProfile: "Office Workers, Legal Professionals",
+                is247: false
+            },
+            "Chick & Co": {
+                address: "Mangavu, Kozhikode",
+                footTraffic: "580+",
+                screenSizes: "43\", 55\", 65\"",
+                operatingHours: "12 hours/day",
+                audienceProfile: "Families, Local Community",
+                is247: false
+            }
+        };
+
+        function showLocationDetails(locationName) {
+            const data = locationsData[locationName];
+            if (data) {
+                document.getElementById('modalLocationName').textContent = locationName;
+                document.getElementById('modalLocationAddress').textContent = data.address;
+                document.getElementById('modalFootTraffic').textContent = data.footTraffic + " people/day";
+                document.getElementById('modalScreenSizes').textContent = data.screenSizes;
+                document.getElementById('modalOperatingHours').textContent = data.operatingHours + (data.is247? " (Premium)" : "");
+                document.getElementById('modalAudienceProfile').textContent = data.audienceProfile;
+                document.getElementById('locationDetailsModal').classList.remove('hidden');
+            }
+        }
+    </script>
+
+</body>
+</html>
