@@ -3,63 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta http-equiv="refresh" content="15">
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
     <title>Full Screen Looping Video</title>
     <style>
         /* Apply a global reset for margin and padding */
         body, html {
             margin: 0;
             padding: 0;
-            overflow: hidden; /* Prevent scrollbars if video slightly overflows */
+            overflow: hidden; /* Prevent scrollbars */
             width: 100%;
             height: 100%;
-            font-family: 'Inter', sans-serif; /* Use Inter font as per instructions */
+            font-family: 'Inter', sans-serif;
+            background-color: #000; /* Set a base background color */
         }
 
-        /* Style the video container to ensure it covers the entire viewport */
+        /* Style the video container */
         .video-container {
-            position: fixed; /* Fixes the container to the viewport */
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            overflow: hidden; /* Hide any overflow from the video */
-            display: flex; /* Use flexbox to center the video */
-            justify-content: center; /* Center horizontally */
-            align-items: center; /* Center vertically */
-            background-color: #000; /* Black background for any letterboxing */
+            overflow: hidden;
         }
 
-        /* Style the video element to cover the container while maintaining aspect ratio */
+        /* Style the video element */
         video {
-            min-width: 100%; /* Ensure video covers at least 100% width */
-            min-height: 100%; /* Ensure video covers at least 100% height */
-            width: auto; /* Allow width to adjust based on aspect ratio */
-            height: auto; /* Allow height to adjust based on aspect ratio */
-            position: absolute; /* Position absolutely within the container */
-            top: 50%; /* Move top edge to center */
-            left: 50%; /* Move left edge to center */
-            transform: translate(-50%, -50%); /* Adjust position to truly center */
-            object-fit: cover; /* This is key: it makes the video cover the entire area, cropping if necessary */
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            object-fit: cover;
+        }
+
+        /* LOADER STYLES */
+        #loader {
+            position: fixed; /* Sit on top of the page content */
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-color: #000; /* Black background */
+            z-index: 10; /* Make sure it's on top */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.75s ease; /* Smooth fade-out */
+        }
+
+        #loader img {
+            width: 100px; /* Adjust size of your logo */
+            height: 100px;
+            animation: spin 1.5s linear infinite; /* Spinning animation */
+        }
+
+        /* Spinning animation keyframes */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
+
+    <div id="loader">
+        <img src="logo.png" alt="Loading...">
+    </div>
+
     <div class="video-container">
-        <!--
-            The video element with necessary attributes:
-            - autoplay: Starts playing the video automatically.
-            - loop: Makes the video play repeatedly.
-            - muted: Mutes the video. Autoplay often requires videos to be muted
-                     to prevent user annoyance and browser restrictions.
-            - playsinline: Important for iOS to play video inline rather than
-                           automatically entering fullscreen mode.
-        -->
-        <video autoplay loop muted playsinline>
-            <!-- Source tag pointing to your video file -->
+        <video id="background-video" loop muted playsinline>
             <source src="hi.MP4" type="video/mp4">
-            <!-- Fallback message for browsers that don't support the video tag -->
             Your browser does not support the video tag.
         </video>
     </div>
+
+    <script>
+        // Wait for the entire window to load
+        window.addEventListener('load', function() {
+            const video = document.getElementById('background-video');
+            const loader = document.getElementById('loader');
+
+            // Event to listen for when the video can be played all the way through
+            video.addEventListener('canplaythrough', function() {
+                // Fade out the loader
+                loader.style.opacity = '0';
+                
+                // Hide the loader completely after the transition ends
+                setTimeout(function() {
+                    loader.style.display = 'none';
+                }, 750); // This time should match the CSS transition duration
+
+                // Start playing the video in case autoplay didn't fire
+                video.play();
+            });
+        });
+    </script>
+
 </body>
 </html>
