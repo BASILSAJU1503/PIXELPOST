@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Full Screen Looping Video</title>
 
-    <meta http-equiv="refresh" content="15">
+    <meta http-equiv="refresh" content="60">
 
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
 
-    <title>Full Screen Looping Video</title>
     <style>
         /* Apply a global reset for margin and padding */
         body, html {
@@ -48,26 +48,33 @@
 
         /* LOADER STYLES */
         #loader {
-            position: fixed; /* Sit on top of the page content */
+            position: fixed;
             width: 100%;
             height: 100%;
             top: 0;
             left: 0;
-            background-color: #000; /* Black background */
-            z-index: 10; /* Make sure it's on top */
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background-color: #000;
+            z-index: 10;
+            
+            /* --- CHANGE: Hide loader by default --- */
+            display: none; 
+            opacity: 1; /* Start at full opacity when shown */
             transition: opacity 0.75s ease; /* Smooth fade-out */
         }
 
         #loader img {
-            width: 100px; /* Adjust size of your logo */
+            width: 100px;
             height: 100px;
-            animation: spin 1.5s linear infinite; /* Spinning animation */
+            animation: spin 1.5s linear infinite;
         }
 
-        /* Spinning animation keyframes */
+        /* Center the loader content (the image) */
+        #loader.show {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -88,24 +95,37 @@
     </div>
 
     <script>
-        // Wait for the entire window to load
-        window.addEventListener('load', function() {
+        document.addEventListener('DOMContentLoaded', function() {
             const video = document.getElementById('background-video');
             const loader = document.getElementById('loader');
 
-            // Event to listen for when the video can be played all the way through
-            video.addEventListener('canplaythrough', function() {
-                // Fade out the loader
-                loader.style.opacity = '0';
-                
-                // Hide the loader completely after the transition ends
-                setTimeout(function() {
-                    loader.style.display = 'none';
-                }, 750); // This time should match the CSS transition duration
+            // This function hides the loader with a fade effect.
+            const hideLoader = () => {
+                // Only act if the loader is currently visible
+                if (loader.classList.contains('show')) {
+                    loader.style.opacity = '0';
+                    setTimeout(() => {
+                        loader.classList.remove('show');
+                    }, 750); // Must match the CSS transition duration
+                }
+            };
 
-                // Start playing the video in case autoplay didn't fire
-                video.play();
+            // When the video is ready to play through, hide the loader.
+            video.addEventListener('canplaythrough', () => {
+                hideLoader();
+                video.play(); // Also ensure the video plays.
             });
+
+            // Use a short timeout. If the video isn't ready after this time,
+            // we assume it's loading and show the indicator.
+            // This prevents the loader from flashing on screen if the video is cached.
+            setTimeout(() => {
+                // The readyState '4' means the video has enough data to play through.
+                if (video.readyState < 4) {
+                    loader.classList.add('show');
+                    loader.style.opacity = '1';
+                }
+            }, 250); // 250ms delay before showing loader
         });
     </script>
 
